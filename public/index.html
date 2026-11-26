@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1a4a">
+<title>Suhaili: a solo voyage</title>
+<meta name="description" content="A turn-based sailing game after Robin Knox-Johnston's 1968-69 solo, non-stop circumnavigation.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">⛵</span><b>SUHAILI</b></div>
+  <div class="date" id="date" aria-live="polite">14 Jun 1968</div>
+  <button class="btn small" id="menuBtn" aria-label="Menu" title="Menu">☰</button>
+</header>
+
+<main class="shell">
+  <section class="win map" aria-label="Chart">
+    <div class="titlebar"><span id="zoneName">Western Approaches</span><span id="windChip" class="chip">Fresh breeze</span></div>
+    <div class="chart" id="chart">
+      <canvas id="base" class="base" aria-hidden="true"></canvas>
+      <canvas id="over" class="over" role="img" aria-label="Chart of the voyage. Tap to switch between the regional view and the whole world."></canvas>
+      <button class="zoom btn small" id="zoomBtn" title="Switch view">World</button>
+    </div>
+    <div class="prog">
+      <div class="progbar"><i id="progFill"></i></div>
+      <div class="progtxt"><span id="miles">0</span> of <span id="total">30,123</span> nm <span class="dim">· <span id="togo"></span> to go</span></div>
+    </div>
+  </section>
+
+  <section class="win status" aria-label="Ship and crew">
+    <div class="titlebar">Ship &amp; crew</div>
+    <div class="meters" id="meters"></div>
+  </section>
+
+  <section class="win orders" aria-label="Orders">
+    <div class="titlebar">Orders for the next 4 days</div>
+    <div class="forecast" id="forecast"></div>
+    <div class="grp"><div class="grplabel">Sail</div><div class="seg" id="segSail" role="radiogroup" aria-label="Sail plan"></div></div>
+    <div class="grp"><div class="grplabel">Rations</div><div class="seg" id="segRation" role="radiogroup" aria-label="Rations"></div></div>
+    <div class="grp"><div class="grplabel">Watch task</div><div class="tasks" id="segTask" role="radiogroup" aria-label="Watch task"></div></div>
+    <div class="hint" id="hint"></div>
+  </section>
+
+  <section class="win log" aria-label="Ship's log">
+    <div class="titlebar">Ship's log</div>
+    <ol id="log" class="loglist"></ol>
+  </section>
+  <footer class="foot">
+    Dramatised from Robin Knox-Johnston's <i>A World of My Own</i>. Game is open source.
+    <a href="https://github.com/benmj/suhaili" rel="noopener">Source</a>
+  </footer>
+</main>
+
+<div class="dock" id="dock">
+  <button class="btn go" id="goBtn"><span id="goLabel">Sail on ▶ 4 days</span></button>
+</div>
+
+<!-- Event -->
+<dialog id="evDlg" class="dlg">
+  <form method="dialog" class="dlgbox" id="evBox">
+    <div class="titlebar" id="evTitle">Event</div>
+    <p id="evText" class="dlgtext"></p>
+    <div id="evChoices" class="choices"></div>
+  </form>
+</dialog>
+
+<!-- Menu / account -->
+<dialog id="menuDlg" class="dlg">
+  <div class="dlgbox">
+    <div class="titlebar">Captain's cabin <button class="x" id="menuClose" aria-label="Close">✕</button></div>
+    <div class="dlgscroll">
+      <h3>Voyage</h3>
+      <div class="row"><button class="btn" id="newBtn">New voyage</button><button class="btn" id="helpBtn">How to play</button></div>
+      <p class="dim" id="achList"></p>
+
+      <h3>Save your voyage</h3>
+      <p class="dim" id="acctNote"></p>
+      <div id="signedOut">
+        <button class="btn google" id="googleBtn">Continue with Google</button>
+        <form id="emailForm" class="emailform">
+          <label for="email">Or get a sign-in link by email</label>
+          <div class="row"><input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required><button class="btn" id="emailBtn" type="submit">Send link</button></div>
+        </form>
+        <p id="authMsg" class="msg" role="status"></p>
+      </div>
+      <div id="signedIn" hidden>
+        <p>Signed in as <b id="who"></b></p>
+        <p class="dim" id="syncState"></p>
+        <button class="btn" id="logoutBtn">Sign out</button>
+      </div>
+      <h3>Hall of fame</h3>
+      <ol id="fame" class="fame"><li class="dim">Sign in to keep your finished voyages.</li></ol>
+    </div>
+  </div>
+</dialog>
+
+<!-- Help -->
+<dialog id="helpDlg" class="dlg">
+  <div class="dlgbox">
+    <div class="titlebar">How to play <button class="x" id="helpClose" aria-label="Close">✕</button></div>
+    <div class="dlgscroll helptext">
+      <p><b>14 June 1968.</b> You are Robin Knox-Johnston, alone in the 32-foot ketch <i>Suhaili</i>, bound round the world without stopping. Sail 30,000 miles from Falmouth, south of the Great Capes, and back. Historically it took 312 days.</p>
+      <ul>
+        <li>Each turn is <b>4 days</b>. Set a sail plan, rations and a watch task, then sail on.</li>
+        <li><b>Sail:</b> Full is fast but wears the ship. Reefed is steady. Heave-to is for storms.</li>
+        <li><b>Rations</b> stretch the stores but wear down body and mind.</li>
+        <li><b>Tasks</b> mend the ship, catch food and rain, rest you, or bring news over the radio.</li>
+        <li><b>Spares</b> are canvas, wood, tallow and line. Repairs use them. You never touch land.</li>
+        <li>Rivals (Moitessier, Tetley, Crowhurst, and others) share the sea. Their fates are as in 1968.</li>
+      </ul>
+      <p>You lose if the hull founders, if you starve, or if your spirit breaks. Tap the chart to switch between the regional view and the whole world.</p>
+      <button class="btn go" id="helpOk">Cast off</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Game over -->
+<dialog id="endDlg" class="dlg">
+  <div class="dlgbox">
+    <div class="titlebar" id="endTitle">The end</div>
+    <div class="dlgscroll">
+      <p id="endText" class="dlgtext"></p>
+      <div class="endstats" id="endStats"></div>
+      <div class="row"><button class="btn go" id="endNew">New voyage</button><button class="btn" id="endClose">Look at the log</button></div>
+    </div>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

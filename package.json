@@ -1,0 +1,13 @@
+{
+  "name": "suhaili",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Suhaili: a turn-based solo circumnavigation game after Knox-Johnston's 1968-69 voyage.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "start": "node server/server.mjs",
+    "sim": "node test/sim.mjs"
+  },
+  "license": "MIT"
+}
